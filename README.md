@@ -6,6 +6,15 @@
 
 Drop a folder of photos, pick a format, hit **Convert**. One file or several hundred — PikturShift does the lot in parallel and keeps your originals untouched.
 
+
+## Screenshots
+
+<img width="1919" height="1079" alt="Screenshot 2026-10-20 182934" src="https://github.com/user-attachments/assets/0331933b-67a8-445b-878b-4d059aac6e99" />
+<img width="1919" height="1079" alt="Screenshot 2026-10-20 182920" src="https://github.com/user-attachments/assets/840bb0c5-f071-46d3-9c51-fb12e42ead26" />
+<img width="1919" height="1079" alt="Screenshot 2026-10-20 182915" src="https://github.com/user-attachments/assets/ef670e13-395d-4c19-a250-7df51f81962f" />
+<img width="1919" height="1079" alt="Screenshot 2026-10-20 182945" src="https://github.com/user-attachments/assets/9d2753f2-facb-4205-a510-b5db4aa502fd" />
+
+
 - **Version 1.0** · Windows 10 1809+ / Windows 11 · x64
 - **Download:** [`release/PikturShift.exe`](release/PikturShift.exe) — one file, ~64 MB, self-contained (no .NET install, no installer, no admin rights)
 
