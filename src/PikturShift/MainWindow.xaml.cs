@@ -14,6 +14,12 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
 
+    // The custom titlebar and all app surfaces are WPF-rendered. DWM's immersive dark-mode
+    // attribute is set once when the native window is created; changing it later rebuilds the
+    // DWM frame and can flash the rounded corner during a Light-to-Dark transition.
+    private bool _nativeChromeInitialized;
+    private Color? _compositionBackground;
+
     public MainWindow(MainViewModel viewModel)
     {
         _viewModel = viewModel;
@@ -49,7 +55,7 @@ public partial class MainWindow : Window
             // Translucent surfaces need a transparent composition background, otherwise WPF
             // composites them over black - which is what showed up as a dark wedge in the
             // rounded corner of the content surface.
-            NativeWindow.SetCompositionBackground(
+            SetCompositionBackground(
                 handle, mica ? Colors.Transparent : ThemeManager.Palette.Window);
             ThemeManager.EnableTranslucency(mica);
         }
@@ -80,13 +86,29 @@ public partial class MainWindow : Window
             return;
         }
 
-        NativeWindow.ApplyRoundedCorners(handle);
-        NativeWindow.SetImmersiveDarkMode(handle, ThemeManager.IsDark);
+        if (!_nativeChromeInitialized)
+        {
+            NativeWindow.ApplyRoundedCorners(handle);
+            // This value is only needed for DWM-owned non-client surfaces. Our visible caption
+            // is custom WPF, so updating DWM's attribute on each app-theme switch is unnecessary
+            // and rebuilds the frame (the source of the one-frame dark corner flash).
+            NativeWindow.SetImmersiveDarkMode(handle, ThemeManager.IsDark);
+            _nativeChromeInitialized = true;
+        }
 
-        // Keep the composition background in step with the backdrop: transparent while Mica is
-        // doing the painting, the plain window colour when translucency is off.
-        NativeWindow.SetCompositionBackground(
-            handle, ThemeManager.UseTranslucency ? Colors.Transparent : ThemeManager.Palette.Window);
+        SetCompositionBackground(handle,
+            ThemeManager.UseTranslucency ? Colors.Transparent : ThemeManager.Palette.Window);
+    }
+
+    private void SetCompositionBackground(IntPtr handle, Color color)
+    {
+        if (_compositionBackground == color)
+        {
+            return;
+        }
+
+        NativeWindow.SetCompositionBackground(handle, color);
+        _compositionBackground = color;
     }
 
     protected override void OnSourceInitialized(EventArgs e)

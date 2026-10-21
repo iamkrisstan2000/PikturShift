@@ -64,9 +64,9 @@
 
             <!-- ======================================================== body
                  The body itself stays unpainted so both translucent surfaces reach the
-                 backdrop. The only rail paint behind the content surface is the small corner
-                 patch below: it fills the notch left by the rounded top-left corner (without
-                 it the window composites that notch against black) and backs the 1 px seam. -->
+                 backdrop. The small corner patch and 1 px seam below use the exact same
+                 translucent rail brush as the navigation pane, so the rounded notch never
+                 becomes a darker opaque square and still reveals the Mica backdrop. -->
             <Grid Grid.Row="1" Background="Transparent">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -164,9 +164,8 @@
                     </Grid>
                 </Border>
 
-                <!-- Rail paint that must sit behind the content surface: the 10 x 10 square
-                     its rounded corner cuts out of, plus a 1 px backing along the seam. Both
-                     are hidden by the content surface everywhere else. -->
+                <!-- Extend the translucent rail surface beneath the content's rounded notch
+                     and along the seam; it must stay the same alpha as the rail itself. -->
                 <Rectangle Grid.Column="1" Width="10" Height="10"
                            HorizontalAlignment="Left" VerticalAlignment="Top"
                            Fill="{DynamicResource RailBgBrush}" />

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -19,9 +20,14 @@ public sealed record FormatChoice(OutputFormat Value, string Name, string Hint);
 
 public sealed class MainViewModel : ObservableObject
 {
-    // Two previews at a time: enough to keep the list filling smoothly, low enough that the
-    // peak decode cost stays flat no matter how many hundred files were dropped at once.
-    private static readonly SemaphoreSlim PreviewGate = new(2, 2);
+    private sealed record PreviewRequest(JobViewModel Job, bool WantsThumbnail, int Generation);
+
+    // The queue may contain thousands of rows, but only two preview workers are ever
+    // scheduled. This bounds task overhead as well as concurrent decode memory.
+    private const int PreviewWorkerLimit = 2;
+    private readonly ConcurrentQueue<PreviewRequest> _previewQueue = new();
+    private int _activePreviewWorkers;
+    private int _previewGeneration;
 
     private readonly SettingsStore _store;
     private readonly AppSettings _settings;
@@ -549,7 +555,7 @@ public sealed class MainViewModel : ObservableObject
             var vm = new JobViewModel(job) { CurrentTargetLabel = _selectedFormat.Name };
             Jobs.Add(vm);
             added++;
-            _ = LoadPreviewAsync(vm);
+            QueuePreview(vm, Jobs.Count <= 500);
         }
 
         if (fromDrop)
@@ -577,30 +583,79 @@ public sealed class MainViewModel : ObservableObject
         UpdateStatus();
     }
 
-    private async Task LoadPreviewAsync(JobViewModel job)
+    private void QueuePreview(JobViewModel job, bool wantsThumbnail)
     {
-        // Snapshot UI-thread state before hopping to the pool (the queue itself is not thread safe).
-        int queueSize = Jobs.Count;
-        await PreviewGate.WaitAsync().ConfigureAwait(false);
+        _previewQueue.Enqueue(new PreviewRequest(job, wantsThumbnail, Volatile.Read(ref _previewGeneration)));
+        StartPreviewWorkers();
+    }
+
+    private void StartPreviewWorkers()
+    {
+        while (!_previewQueue.IsEmpty)
+        {
+            int active = Volatile.Read(ref _activePreviewWorkers);
+            if (active >= PreviewWorkerLimit)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _activePreviewWorkers, active + 1, active) == active)
+            {
+                _ = Task.Run(DrainPreviewQueue);
+            }
+        }
+    }
+
+    private void DrainPreviewQueue()
+    {
         try
         {
-            var path = job.SourcePath;
-            var probe = await Task.Run(() => ImageConverter.Probe(path)).ConfigureAwait(false);
-
-            // WIC scales while decoding, so even big files are cheap here. Anything past
-            // 120 MP (scans, panoramas) skips the icon rather than reserving a pixel buffer.
-            bool wantThumb = probe.Success
-                             && (long)probe.Width * probe.Height <= 120_000_000
-                             && queueSize <= 500;
-
-            BitmapImage? thumb = null;
-            if (wantThumb)
+            while (_previewQueue.TryDequeue(out var request))
             {
-                thumb = await Task.Run(() => ThumbnailLoader.Load(path, 96)).ConfigureAwait(false);
+                LoadPreview(request);
             }
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activePreviewWorkers);
+            // An item may have arrived just as this worker observed an empty queue.
+            if (!_previewQueue.IsEmpty)
+            {
+                StartPreviewWorkers();
+            }
+        }
+    }
+
+    private void LoadPreview(PreviewRequest request)
+    {
+        try
+        {
+            var job = request.Job;
+            var probe = ImageConverter.Probe(job.SourcePath);
+            if (request.Generation != Volatile.Read(ref _previewGeneration))
+            {
+                return;
+            }
+
+            // Skip very large images and batches; WIC subsamples while decoding, with the
+            // longest thumbnail edge capped at 64 px (the list tile is 40 px).
+            bool wantThumb = request.WantsThumbnail
+                             && probe.Success
+                             && (long)probe.Width * probe.Height <= 120_000_000;
+
+            BitmapImage? thumb = wantThumb
+                ? ThumbnailLoader.Load(job.SourcePath, probe.Width, probe.Height, maxEdge: 64)
+                : null;
 
             Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
             {
+                // A clear/remove while decoding should release the result, not attach a
+                // thumbnail to a row that is no longer visible in the queue.
+                if (request.Generation != Volatile.Read(ref _previewGeneration) || !Jobs.Contains(job))
+                {
+                    return;
+                }
+
                 job.ApplyProbe(probe);
                 job.AttachThumbnail(thumb);
                 UpdateStatus();
@@ -608,11 +663,7 @@ public sealed class MainViewModel : ObservableObject
         }
         catch
         {
-            // previews are decoration only
-        }
-        finally
-        {
-            PreviewGate.Release();
+            // Previews are decoration only; an unsupported thumbnail must never block a batch.
         }
     }
 
@@ -646,6 +697,12 @@ public sealed class MainViewModel : ObservableObject
         if (IsConverting)
         {
             return;
+        }
+
+        Interlocked.Increment(ref _previewGeneration);
+        while (_previewQueue.TryDequeue(out _))
+        {
+            // Drop pending preview requests before releasing queued rows.
         }
 
         Jobs.Clear();

@@ -122,8 +122,14 @@ public static class ThemeManager
         byte contentAlpha = SurfaceAlpha(ContentTranslucency);
 
         Set("WindowBgBrush", UseTranslucency ? Colors.Transparent : p.Window);
-        Set("CaptionBgBrush", ColorUtil.WithAlpha(p.Window, railAlpha));
+
+        // The caption bar and the rail are one continuous strip: the rail runs up into the
+        // titlebar, so both surfaces use the rail colour. They used to differ (the caption
+        // took the window colour), which in Dark is the same value but in Light showed up as
+        // a visible seam where the strip meets the pane.
+        Set("CaptionBgBrush", ColorUtil.WithAlpha(p.Rail, railAlpha));
         Set("RailBgBrush", ColorUtil.WithAlpha(p.Rail, railAlpha));
+
         Set("ContentBgBrush", ColorUtil.WithAlpha(p.Content, contentAlpha));
         Set("CardBgBrush", p.Card);
         Set("CardBorderBrush", p.CardBorder);

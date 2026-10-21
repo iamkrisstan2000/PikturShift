@@ -121,6 +121,9 @@ using (var src = Image.Load(opaquePng))
     src.Save(exifJpg, new JpegEncoder { Quality = 95 });
 }
 
+Check("default conversion parallelism is memory-limited", ConversionBatch.DefaultParallelism is >= 1 and <= 6,
+    $"workers={ConversionBatch.DefaultParallelism}");
+
 Console.WriteLine("\n[1] probe");
 var probe = ImageConverter.Probe(webp);
 Check("probe webp", probe.Success && probe.FormatName == "WEBP" && probe.Width == 320 && probe.Height == 200,
@@ -260,12 +263,29 @@ Console.WriteLine("\n[7] parallel batch");
 
     var outputs = new List<string>();
     var gate = new object();
+    var converting = new HashSet<ConversionJob>();
+    int peakWorkers = 0;
     await ConversionBatch.RunAsync(
         jobs,
         new ConversionOptions { Format = OutputFormat.Jpg, Quality = 90 },
         Path.Combine(dir, "out"),
         overwrite: false,
-        job => { lock (gate) { if (job.OutputPath is not null) outputs.Add(job.OutputPath); } },
+        job =>
+        {
+            lock (gate)
+            {
+                if (job.OutputPath is not null) outputs.Add(job.OutputPath);
+                if (job.Status == "converting")
+                {
+                    converting.Add(job);
+                    peakWorkers = Math.Max(peakWorkers, converting.Count);
+                }
+                else if (job.Status is "done" or "failed")
+                {
+                    converting.Remove(job);
+                }
+            }
+        },
         parallelism: 4);
 
     Check("all valid jobs done", jobs.Count(j => j.Status == "done") == 8);
@@ -273,9 +293,27 @@ Console.WriteLine("\n[7] parallel batch");
     Check("unique outputs for duplicate names", outputs.Distinct(StringComparer.OrdinalIgnoreCase).Count() == outputs.Count,
         string.Join(", ", outputs.Select(Path.GetFileName)));
     Check("all outputs exist", outputs.All(File.Exists));
+    Check("active conversions stay within worker limit", peakWorkers is > 0 and <= 4, $"peak={peakWorkers}");
 }
 
-Console.WriteLine("\n[8] settings round-trip");
+Console.WriteLine("\n[8] cancellation with a large pending queue");
+{
+    var jobs = Enumerable.Range(0, 32)
+        .Select(i => new ConversionJob(Path.Combine(root, $"queued_{i}.jpg")))
+        .ToList();
+    using var cancellation = new CancellationTokenSource();
+    cancellation.Cancel();
+    await ConversionBatch.RunAsync(
+        jobs,
+        new ConversionOptions { Format = OutputFormat.Png },
+        null,
+        overwrite: false,
+        parallelism: 3,
+        cancellationToken: cancellation.Token);
+    Check("pre-cancelled pending jobs finish as cancelled", jobs.All(j => j.Status == "failed" && j.Error == "Cancelled"));
+}
+
+Console.WriteLine("\n[9] settings round-trip");
 {
     var store = new SettingsStore(Path.Combine(root, "settings.json"));
     var s = new AppSettings { Theme = "Light", Accent = "pink", Quality = 84, Format = "WebP", FillColor = "#001122", NavExpanded = true };
