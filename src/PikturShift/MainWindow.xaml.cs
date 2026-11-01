@@ -33,10 +33,6 @@ public partial class MainWindow : Window
         ThemeManager.ThemeChanged += (_, _) => ApplyNativeChrome();
     }
 
-    /// <summary>Keeps the drop overlay clear of the navigation pane as it animates.</summary>
-    private void OnNavPaneSizeChanged(object sender, SizeChangedEventArgs e) =>
-        DragOverlay.Margin = new Thickness(NavPane.ActualWidth + 8, 8, 8, 8);
-
     protected override void OnActivated(EventArgs e)
     {
         base.OnActivated(e);
@@ -259,7 +255,8 @@ public partial class MainWindow : Window
             _viewModel.IsSettingsPage = false;
         }
 
-        DragOverlay.Visibility = Visibility.Visible;
+        // Keep the drag affordance local to the drop zone; the queue and options remain
+        // readable and interactive while files are being dragged over the window.
         DropDashHover.Opacity = 1;
         e.Handled = true;
     }
@@ -283,7 +280,6 @@ public partial class MainWindow : Window
 
     private void ResetDragVisuals()
     {
-        DragOverlay.Visibility = Visibility.Collapsed;
         DropDashHover.Opacity = 0;
     }
 }

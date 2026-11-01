@@ -6,12 +6,12 @@ namespace PikturShift.Core.Imaging;
 /// </summary>
 public static class ConversionBatch
 {
-    private const long BytesPerWorkerBudget = 1024L * 1024 * 1024;
-    private const int MaximumWorkers = 6;
+    private const long BytesPerWorkerBudget = 2L * 1024 * 1024 * 1024;
+    private const int MaximumWorkers = 4;
 
     /// <summary>
     /// Caps concurrency by both CPU count and available memory. A worker may hold several
-    /// decoded image buffers, so a one-gigabyte-per-worker budget is a conservative guard
+    /// decoded image buffers, so a two-gigabyte-per-worker budget is a conservative guard
     /// against large batches exhausting low-memory machines.
     /// </summary>
     public static int DefaultParallelism

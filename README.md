@@ -2,20 +2,15 @@
 
 **A fast, private batch image converter for Windows 11.** Drop photos, choose a format, and convert—offline, with no account or telemetry.
 
-- **Official release: V1.0.1** · Windows 10 1809+ / Windows 11 · x64
+- **Official release: V1.1.0** · Windows 10 1809+ / Windows 11 · x64
 - **Download:** [`release/PikturShift.exe`](release/PikturShift.exe) — single-file, self-contained, no .NET installation required
 - **Source:** [`release/PikturShift-source.zip`](release/PikturShift-source.zip)
 
 > The app is unsigned, so SmartScreen may show a warning on first launch. Choose **More info → Run anyway** if you trust the build.
 
+## V1.1.0 update
 
-## Screenshots 
-
-<img width="1919" height="1079" alt="Screenshot 2026-10-20 182934" src="https://github.com/user-attachments/assets/14e130fc-b8f4-4ed9-9ef6-a111b4b1f082" />
-<img width="1919" height="1079" alt="Screenshot 2026-10-20 182920" src="https://github.com/user-attachments/assets/2c6c279e-bc2e-4a05-9de4-e611be161da1" />
-<img width="1919" height="1079" alt="Screenshot 2026-10-20 182915" src="https://github.com/user-attachments/assets/90493d06-8c55-44ee-8f2d-c015b9710344" />
-<img width="1919" height="1079" alt="Screenshot 2026-10-20 182945" src="https://github.com/user-attachments/assets/e22c7801-51c3-4240-a3af-2965e69acd6e" />
-
+Drag feedback is now confined to the dashed **Drag & drop images here** target, highlighted in the selected accent colour. The file queue and conversion options remain clear; dropping anywhere on the app still adds supported images. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
@@ -38,7 +33,7 @@
 
 ## Appearance
 
-System / Dark / Light themes, live Windows accent matching, seven named accents plus mono, and native Mica translucency where Windows 11 supports it. The UI is built with WPF and custom Fluent-style controls.
+System / Dark / Light themes, live Windows accent matching, seven named accents plus mono, and native Mica translucency where Windows 11 supports it. The main content lets 5% of the backdrop through in Dark and 3% in Light; rail/titlebar translucency stays unchanged. The UI is built with WPF and custom Fluent-style controls.
 
 ## Build and test
 
@@ -61,8 +56,5 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes and [LICENSE](LICENSE) for th
 ## Support
 
 PikturShift is free and open source. If it helps, a repo star, a share, a bug report, or a feature suggestion is a lovely way to support it. You can also [sponsor the project](https://github.com/sponsors/iamkrisstan2000)—no pressure; using the app is already appreciated.
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N7D7292WUD)
-
 
 *Made by Mr KNIGHT · Made possible with AI · October 2026*

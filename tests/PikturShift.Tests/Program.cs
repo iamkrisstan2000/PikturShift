@@ -121,7 +121,7 @@ using (var src = Image.Load(opaquePng))
     src.Save(exifJpg, new JpegEncoder { Quality = 95 });
 }
 
-Check("default conversion parallelism is memory-limited", ConversionBatch.DefaultParallelism is >= 1 and <= 6,
+Check("default conversion parallelism is memory-limited", ConversionBatch.DefaultParallelism is >= 1 and <= 4,
     $"workers={ConversionBatch.DefaultParallelism}");
 
 Console.WriteLine("\n[1] probe");

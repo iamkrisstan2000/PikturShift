@@ -33,7 +33,7 @@ public static class ThemeManager
     /// lighter so the sidebar still reads as a distinct layer.
     /// </summary>
     private static double RailTranslucency => IsDark ? 0.060 : 0.025;
-    private static double ContentTranslucency => IsDark ? 0.080 : 0.015;
+    private static double ContentTranslucency => IsDark ? 0.050 : 0.030;
     public static ThemePalette Palette { get; private set; } = ThemePalette.Dark;
     public static string AccentDisplayName => AccentCatalog.DisplayName(Accent, IsDark);
     public static string SystemAccentHex => ColorUtil.ToHex(SystemAccentColor);
