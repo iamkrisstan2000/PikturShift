@@ -8,6 +8,16 @@
 
 > The app is unsigned, so SmartScreen may show a warning on first launch. Choose **More info → Run anyway** if you trust the build.
 
+## Screenshots 
+
+
+<img width="1919" height="1079" alt="Screenshot 2026-11-01 235029" src="https://github.com/user-attachments/assets/357d0cee-d5b8-44cc-80f4-af8dec348be4" />
+<img width="1919" height="1079" alt="Screenshot 2026-11-01 235023" src="https://github.com/user-attachments/assets/10b14a7b-6567-4b98-986a-7c6526f34f22" />
+<img width="1919" height="1079" alt="Screenshot 2026-11-01 235018" src="https://github.com/user-attachments/assets/1b37b94d-569c-4c3b-b352-5bceff29015b" />
+<img width="1919" height="1079" alt="Screenshot 2026-11-01 235012" src="https://github.com/user-attachments/assets/4b001e5c-de50-48a9-bb90-275db1a5a736" />
+<img width="1919" height="1079" alt="Screenshot 2026-11-01 235006" src="https://github.com/user-attachments/assets/d0191eee-0744-4a86-b074-1ba944dce35a" />
+
+
 ## V1.1.0 update
 
 Drag feedback is now confined to the dashed **Drag & drop images here** target, highlighted in the selected accent colour. The file queue and conversion options remain clear; dropping anywhere on the app still adds supported images. See [CHANGELOG.md](CHANGELOG.md).
@@ -56,5 +66,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes and [LICENSE](LICENSE) for th
 ## Support
 
 PikturShift is free and open source. If it helps, a repo star, a share, a bug report, or a feature suggestion is a lovely way to support it. You can also [sponsor the project](https://github.com/sponsors/iamkrisstan2000)—no pressure; using the app is already appreciated.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N7D7292WUD)
 
 *Made by Mr KNIGHT · Made possible with AI · October 2026*
